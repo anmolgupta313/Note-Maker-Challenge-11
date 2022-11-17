@@ -1,33 +1,40 @@
+//Importing library and files
 const express = require("express");
 const path = require('path');
 const uuid = require('uuid');
 const db = require('./db/db.json');
 const fs = require('fs');
+
+//Created port
 const PORT = process.env.PORT || 3001;
 
+//Calling express
 const app = express();
 
+//Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use(express.static('public'));
 
-
+//Getting data at / end point
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, './public/index.html'))
 }
 );
 
+// Getting data at /notes end point
 app.get('/notes', (req, res) => {
   res.sendFile(path.join(__dirname, './public/notes.html'))
 }
 );
 
-app.get('/api/notes', (req, res) => {
-  res.json(db);
-})
+//Getting data at /api/notes end point
+app.get("/api/notes", (req, res) => {
+  res.sendFile(path.join(__dirname, "/db/db.json"));
+});
 
-
+//Posting data at /api/notes end point and pushing new  notes to db.json file
 app.post('/api/notes', (req, res) => {
   let data = {
     id: uuid.v4(),
@@ -36,8 +43,8 @@ app.post('/api/notes', (req, res) => {
   };
 
   db.push(data);
-
   res.json(db);
+ 
   fs.writeFile('./db/db.json', JSON.stringify(db),
     (err, text) => {
       if (err) {
@@ -46,25 +53,23 @@ app.post('/api/notes', (req, res) => {
       }
       console.log("Success");
     });
+
+    
 })
 
-// app.delete("/api/notes/:id", function(req, res) {
-//   let savedNotes = db;
-//   let noteID = req.params.id;
-//   let newID = 0;
-//   console.log(`Deleting note with ID ${noteID}`);
-//   savedNotes = savedNotes.filter(currNote => {
-//       return currNote.id != noteID;
-//   })
-  
-//   for (currNote of savedNotes) {
-//       currNote.id = newID.toString();
-//       newID++;
-//   }
+// //Deleting data using id query(params) from the note taker and db.json
+// app.delete("/api/notes/:id", (req, res) => {
+//     let list = JSON.parse(fs.readFileSync("./db/db.json", "utf8"));
+//     let noteListId = (req.params.id).toString();
 
-//   fs.writeFileSync("./db/db.json", JSON.stringify(savedNotes));
-//   res.json(savedNotes);
-// })
+//     list = list.filter(selectedListId =>{
+//         return selectedListId.id != noteListId;
+//     })
+
+//     //write the updated data to db.json and display the updated note
+//     fs.writeFileSync("./db/db.json", JSON.stringify(list));
+//     res.json(list);
+// });
 
 app.listen(PORT, () => {
   console.log(`http://localhost:${PORT}`);
