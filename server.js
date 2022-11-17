@@ -4,6 +4,7 @@ const path = require('path');
 const uuid = require('uuid');
 const db = require('./db/db.json');
 const fs = require('fs');
+const { json } = require("body-parser");
 
 //Created port
 const PORT = process.env.PORT || 3001;
@@ -42,34 +43,38 @@ app.post('/api/notes', (req, res) => {
     text: req.body.text
   };
 
-  db.push(data);
-  res.json(db);
- 
-  fs.writeFile('./db/db.json', JSON.stringify(db),
+  // read the db
+  let fileDb = fs.readFileSync('./db/db.json', 'utf-8'); 
+  fileDb = JSON.parse(fileDb); 
+  console.log(fileDb, 'after json parse'); 
+  fileDb.push(data); 
+  console.log(fileDb, 'after data push'); 
+
+  fs.writeFile('./db/db.json', JSON.stringify(fileDb),
     (err, text) => {
       if (err) {
         console.log(err);
         return
       }
       console.log("Success");
+      res.json(fileDb);
     });
 
-    
 })
 
-// //Deleting data using id query(params) from the note taker and db.json
-// app.delete("/api/notes/:id", (req, res) => {
-//     let list = JSON.parse(fs.readFileSync("./db/db.json", "utf8"));
-//     let noteListId = (req.params.id).toString();
+// // //Deleting data using id query(params) from the note taker and db.json
+app.delete("/api/notes/:id", (req, res) => {
+    let list = JSON.parse(fs.readFileSync("./db/db.json", "utf8"));
+    let noteListId = (req.params.id);
 
-//     list = list.filter(selectedListId =>{
-//         return selectedListId.id != noteListId;
-//     })
+    let newList = list.filter(selectedListId =>{
+        return selectedListId.id != noteListId;
+    })
 
-//     //write the updated data to db.json and display the updated note
-//     fs.writeFileSync("./db/db.json", JSON.stringify(list));
-//     res.json(list);
-// });
+    //write the updated data to db.json and display the updated note
+    fs.writeFileSync("./db/db.json", JSON.stringify(newList));
+    res.json(newList);
+});
 
 app.listen(PORT, () => {
   console.log(`http://localhost:${PORT}`);
